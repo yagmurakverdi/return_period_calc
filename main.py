@@ -11,6 +11,7 @@ data_path = './data/'
 
 
 def open_data_file(f):
+    """This opens the nc file"""
     if f in data_files:
         file_path = data_path + data_files[f]
     else:
@@ -20,10 +21,20 @@ def open_data_file(f):
     return nc_data
 
 
+def process_data(d):
+    """This is the beginning of the process"""
+    # with nc_data as fr:
+    print(list(d.keys()))
+
+
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    nc_data = open_data_file('26-50-8.5')
+    fkey = '26-50-8.5'
+    print('opening file >', fkey)
+    nc_data = open_data_file(fkey)
     if not nc_data:
         print('error')
         sys.exit(1)
-    print(nc_data)
+    print('start processing >', fkey)
+    process_data(nc_data)
+    # print(nc_data)
