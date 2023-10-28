@@ -3,6 +3,22 @@ Yagmur's Thesis Code Steps
 
 This is to setup, run and trace steps for Yagmur.
 
+Data Sets
+---------
+* 1970-2000 reference period precipitation data (will come)
+* 2026-2050 3 hrs and daily precipitation data for RCP 8.5 scenario
+* 2026-2050 daily precipitation for RCP 4.5 scenario (will come)
+* 2050-2075 daily precipitation for RCP 4.5 and RCP 8.5 scenarios (will come)
+* 2075-2100 daily precipitation for RCP 4.5 and RCP 8.5 scenarios (will come)
+
+Methods
+-------
+* MEV (Meta Statistical Extreme Value)
+* GEV (Generalized Extreme Value)
+* Quantile 
+* Statistical Calculation  
+methods will be applied and calculations will be checked
+
 Steps so far
 ------------
 * opened the Data file for 2026-2050 RCP 8.5 RFE data
