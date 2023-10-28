@@ -3,6 +3,7 @@ import sys
 import xarray as xr
 import numpy as np
 import pandas as pd
+import mevpy as mev
 
 from utility import save_file, debug_me
 
@@ -26,46 +27,74 @@ def open_data_file(f):
 
 
 def process_data(d, key):
-    """This is the beginning of the process"""
-    data_type = data_files[key]['data_type']
+    """This is the main process where we prepare and run the data
 
-    # with nc_data as fr:
-    print(list(d.keys()))
-    # print(list(d.keys()))  # ['time_bnds', 'crs', 'pr']
+    Data Files General Info
+    'time_bnds' - daily times
+    'crs' - coordinates w/ GeoX GeoY
+    'pr'
+        standard_name:  precipitation_flux
+        long_name:      Mean total precipitation flux
+        units:          kg m-2 s-1
+        grid_mapping:   crs
+        cell_methods:   time: mean
+    'xlon'
+        standard_name:        longitude
+        long_name:            Longitude on Cross Points
+        units:                degrees_east
+    'xlat'
+        standard_name:        latitude
+        long_name:            Latitude on Cross Points
+        units:                degrees_north
+    """
 
-    # Lat - Lon Process
+    # data_type = data_files[key]['data_type']
+
+    # Lat & Lon
     lat = d['xlat'][:]  # Latitude on Cross Points
     lon = d['xlon'][:]  # Longitude on Cross Points
-    nlon = np.size(lon)
-    nlat = np.size(lat)
-    lat_min_value = lat["xlat"].values.min()
-    lat_max_value = lat["xlat"].values.max()
-    lon_min_value = lon["xlon"].values.min()
-    lon_max_value = lon["xlon"].values.max()
 
-    # Time Process
+    # Time and Year
+    time_series = pd.Series(d['time'])
+    unique_days = time_series.dt.date.astype(str).tolist()
+    unique_days = list(set(unique_days))
+    unique_days.sort()
 
-    # Date Process
-    # TODO check if we can use time_bnds
-    dates_all = d['time'][:]  # get times - type is datetime64
-    dates_all_size = np.size(dates_all)  # get size of times
+    # if data_type == '3hrs':
+    #     hours = d['time'][:]  # time
+    #     debug_me('hours', hours)
+    #     # TODO convert 3hrs to daily
 
-    debug_me('dates_all', dates_all)
+    # Precipitation Data
+    prcp_mat = d['pr']  # Total precipitation flux
 
-    if data_type == '3hrs':
-        # converts format to daily
-        # TODO check here
-        dates_all = pd.to_datetime(dates_all, format='%Y-%m-%dT%H:%M:%S.%f')
-        dates_all = [dt.strftime('%Y%m%d') for dt in dates_all]
+    # Variables
+    threshold = 1  # threshold for computing excesses over threshold = ordinary events
+    # min_yearly_dates = 300  # do not compute parameters for years with less than 330 files
+    # min_n_excesses = 3  # min yearly number of ordinary events
+    # min_n_obs = 300  # min number of non-missing daily totals in any year
 
-    unique_dates = np.unique(dates_all)  # get unique dates - when it is daily all are unique
-    debug_me('unique_dates', unique_dates)
+    print('starting the calculations')
+    lon_size = lon.size
+    lat_size = lat.size
+    for ix in range(lon_size):
+        for iy in range(lat_size):
+            prcp = prcp_mat[:, ix, iy]  # total precip for the given lon and lat
 
+            debug_me('len prcp', len(prcp))
+            debug_me('len year', len(unique_days))
+            df = pd.DataFrame({'PRCP': prcp, 'YEAR': unique_days})
 
-# Press the green button in the gutter to run the script.
+            XI, Fi, TR, NCW = mev.table_rainfall_maxima(df, how='pwm', thresh=threshold)
+
+            debug_me('XI', XI)
+            debug_me('Fi', Fi)
+            debug_me('TR', TR)
+            debug_me('NCW', NCW)
+
 if __name__ == '__main__':
+    # data_file = '26-50-8.5-3hrs'  # currently we don't need this
     data_file = '26-50-8.5-daily'
-    # data_file = '26-50-8.5-3hrs'
     # data_file = '22-23-daily'
     print('opening file >', data_file)
     nc_data = open_data_file(data_file)
