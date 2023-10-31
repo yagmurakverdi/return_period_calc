@@ -4,6 +4,7 @@ import xarray as xr
 import numpy as np
 import pandas as pd
 import mevpy as mev
+from xarray import apply_ufunc
 
 from utility import save_file, debug_me
 
@@ -13,6 +14,9 @@ data_files = {
     '26-50-8.5-3hrs': {'name': 'Turkey_MPI_85_dn_SRF.2026-2050_pr_3hour.nc', 'data_type': '3hrs'},
     '22-23-daily': {'name': 'pr_2023_daily.nc', 'data_type': 'daily'},
 }
+
+threshold = 1
+min_n_excesses = 3
 
 
 def open_data_file(f):
@@ -24,6 +28,22 @@ def open_data_file(f):
         return False
     nc_data = xr.open_dataset(file_path)
     return nc_data
+
+
+def wrapper_wei_fit_pwm(sample):
+    # print('> ', end='')
+    data0 = np.array(sample)
+    enough_data_mask = np.logical_and(data0 >= 0, ~np.isnan(data0))
+    data = data0[enough_data_mask]
+    excesses = data[data > threshold] - threshold
+    if len(excesses) > min_n_excesses:
+        # print(len(excesses))
+        n, c, w = mev.wei_fit_pwm(sample)
+    else:
+        # print('nan')
+        n, c, w = np.NAN, np.NAN, np.NAN
+
+    return np.array([n, c, w])
 
 
 def process_data(d, key):
@@ -48,49 +68,46 @@ def process_data(d, key):
         units:                degrees_north
     """
 
-    # data_type = data_files[key]['data_type']
+    # creates another year coordinate in relation with time
+    d = d.assign_coords(year=d['time'].dt.year)
 
-    # Lat & Lon
-    lat = d['xlat'][:]  # Latitude on Cross Points
-    lon = d['xlon'][:]  # Longitude on Cross Points
+    # converts timestamp to string YYYY-MM-DD
+    d['time'] = d['time'].dt.strftime('%Y-%m-%d')
 
-    # Time and Year
-    time_series = pd.Series(d['time'])
-    unique_days = time_series.dt.date.astype(str).tolist()
-    unique_days = list(set(unique_days))
-    unique_days.sort()
+    # calculate max rainfall for each year
+    print('calculating max_rainfall...')
+    max_rainfall = d['pr'].groupby('year').max(dim='time')
+    max_rainfall.attrs['standard_name'] = 'max_precipitation_flux'
+    max_rainfall.attrs['long_name'] = 'Max precipitation flux'
+    max_rainfall.attrs['cell_methods'] = 'time: max'
+    # debug_me('max_rainfall', max_rainfall)
+    print('done...')
 
-    # if data_type == '3hrs':
-    #     hours = d['time'][:]  # time
-    #     debug_me('hours', hours)
-    #     # TODO convert 3hrs to daily
+    # Save to a netCDF file
+    max_rainfall.to_netcdf('./out/max_rainfall_2026-2050-4.nc')
+    print('max rainfall written to file')
 
-    # Precipitation Data
-    prcp_mat = d['pr']  # Total precipitation flux
+    # Begin Calculating N, C, W values
+    # Applying the function to each lon, lat, and year
+    print('calculating n, c, w')
+    ncw = apply_ufunc(
+        wrapper_wei_fit_pwm,
+        d['pr'].groupby('year'),
+        input_core_dims=[['time']],
+        vectorize=True,
+        dask="parallelized",
+        output_dtypes=[float],
+        output_core_dims=[["parameter"]]
+    )
+    ncw = ncw.assign_coords(parameter=["n", "c", "w"])
+    print('done...')
+    # debug_me('result', result)
 
-    # Variables
-    threshold = 1  # threshold for computing excesses over threshold = ordinary events
-    # min_yearly_dates = 300  # do not compute parameters for years with less than 330 files
-    # min_n_excesses = 3  # min yearly number of ordinary events
-    # min_n_obs = 300  # min number of non-missing daily totals in any year
+    # Write to NetCDF file
+    # TODO write summary, description and units etc to ncw data set
+    ncw.to_netcdf('./out/NCW_2026-2050-4.nc')
+    print('n, c, w written to file')
 
-    print('starting the calculations')
-    lon_size = lon.size
-    lat_size = lat.size
-    for ix in range(lon_size):
-        for iy in range(lat_size):
-            prcp = prcp_mat[:, ix, iy]  # total precip for the given lon and lat
-
-            debug_me('len prcp', len(prcp))
-            debug_me('len year', len(unique_days))
-            df = pd.DataFrame({'PRCP': prcp, 'YEAR': unique_days})
-
-            XI, Fi, TR, NCW = mev.table_rainfall_maxima(df, how='pwm', thresh=threshold)
-
-            debug_me('XI', XI)
-            debug_me('Fi', Fi)
-            debug_me('TR', TR)
-            debug_me('NCW', NCW)
 
 if __name__ == '__main__':
     # data_file = '26-50-8.5-3hrs'  # currently we don't need this
@@ -103,4 +120,5 @@ if __name__ == '__main__':
         sys.exit(1)
     print('start processing >', data_file)
     process_data(nc_data, data_file)
+    print('completed...')
     # print(nc_data)
