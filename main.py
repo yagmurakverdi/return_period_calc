@@ -46,6 +46,11 @@ def wrapper_wei_fit_pwm(sample):
     return np.array([n, c, w])
 
 
+def wrapper_gev_fit_lmom(sample):
+    csi, psi, mu = mev.gev_fit_lmom(sample)
+    return np.array([csi, psi, mu])
+
+
 def process_data(d, key):
     """This is the main process where we prepare and run the data
 
@@ -107,6 +112,28 @@ def process_data(d, key):
     # TODO write summary, description and units etc to ncw data set
     ncw.to_netcdf('./out/NCW_2026-2050-4.nc')
     print('n, c, w written to file')
+
+    # Calculating csi, psi and mu
+    # Applying the function to each lon and lat for all years
+    print('calculating gev_fit (csi, psi, mu) from max rainfall')
+    gev_max = apply_ufunc(
+        wrapper_gev_fit_lmom,
+        max_rainfall,
+        input_core_dims=[['year']],
+        vectorize=True,
+        dask="parallelized",
+        output_dtypes=[float],
+        output_core_dims=[["parameter"]]
+    )
+
+    gev_max = gev_max.assign_coords(parameter=["csi", "psi", "mu"])
+    print('done...')
+    # debug_me('gev_max', gev_max)
+
+    # Write to NetCDF file
+    # TODO write summary, description and units etc to ncw data set
+    gev_max.to_netcdf('./out/GEV_MAX_2026-2050-4.nc')
+    print('gev fit (csi, psi, mu) written to file...')
 
 
 if __name__ == '__main__':
