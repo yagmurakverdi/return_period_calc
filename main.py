@@ -1,4 +1,5 @@
 import sys
+import time
 
 import xarray as xr
 import numpy as np
@@ -105,12 +106,14 @@ def process_data(d, key):
         output_core_dims=[["parameter"]]
     )
     ncw = ncw.assign_coords(parameter=["n", "c", "w"])
+
     print('done...')
-    # debug_me('result', result)
+
 
     # Write to NetCDF file
     # TODO write summary, description and units etc to ncw data set
     ncw.to_netcdf('./out/NCW_2026-2050-4.nc')
+    # TODO write summary, description and units etc to data set
     print('n, c, w written to file')
 
     # Calculating csi, psi and mu
@@ -131,7 +134,7 @@ def process_data(d, key):
     # debug_me('gev_max', gev_max)
 
     # Write to NetCDF file
-    # TODO write summary, description and units etc to ncw data set
+    # TODO write summary, description and units etc to data set
     gev_max.to_netcdf('./out/GEV_MAX_2026-2050-4.nc')
     print('gev fit (csi, psi, mu) written to file...')
 
@@ -140,6 +143,7 @@ if __name__ == '__main__':
     # data_file = '26-50-8.5-3hrs'  # currently we don't need this
     data_file = '26-50-8.5-daily'
     # data_file = '22-23-daily'
+    time_start = time.time()
     print('opening file >', data_file)
     nc_data = open_data_file(data_file)
     if not nc_data:
@@ -147,5 +151,6 @@ if __name__ == '__main__':
         sys.exit(1)
     print('start processing >', data_file)
     process_data(nc_data, data_file)
-    print('completed...')
+    time_end = time.time()
+    print(f'completed in {(time_end - time_start) / 60} mins')
     # print(nc_data)
