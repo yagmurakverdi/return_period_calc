@@ -370,14 +370,25 @@ def mev_quant(Fi, x0, N, C, W, potmode=True, thresh=0):
     quant = np.zeros(m)
     flags = np.zeros((m), dtype=bool)  # flag for the convergence of numerical solver
     for ii in range(m):
+        x0_current = x0  # 35
+        x0_step = 0
         myfun = lambda y: mev_fun(y, Fi[ii], N, C, W)
-        res = sc.optimize.fsolve(myfun, x0, full_output=1)
+        fvec = 1  # starting value
+        while fvec > 1e-5:
+            if fvec != 1:
+                x0_step += 1
+                x0_next = x0 + (x0_step * 25)
+                print(f'mevd_quant:: fsolve does not work with x0={x0_current}, step={x0_step}, next x0={x0_next}')
+                x0_current = x0_next
+            res = sc.optimize.fsolve(myfun, x0_current, full_output=1)
+            fvec = res[1]['fvec']
+            # flags[ii] = 1
+        if x0_step:
+            print(f'> fsolved with x0={x0_current} in {x0_step + 1} steps')
         quant[ii] = res[0]
-        info = res[1]
-        fval = info['fvec']
-        if fval > 1e-5:
-            print('mevd_quant:: ERROR - fsolve does not work -  change x0')
-            flags[ii] = 1
+        # info = res[1]
+        # fvec = info['fvec']
+
         quant = quant if not is_scalar else quant[0]
         flags = flags if not is_scalar else flags[0]
     if potmode:
