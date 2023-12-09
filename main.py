@@ -43,6 +43,16 @@ def wrapper_mev_quant(n, c, w, rp):
     return hmev
 
 
+def wrapper_gev_quant(csi, psi, mu, rp):
+    hgev = np.zeros(len(rp))
+
+    for index, period in enumerate(rp):
+        fi = 1 - 1 / period
+        hgev[index] = mev.gev_quant(fi, csi, psi, mu)
+
+    return hgev
+
+
 def assign_year_coord(d):
     """This is the main process where we prepare and run the data
 
@@ -143,6 +153,27 @@ def calculate_hmev(d, rp):
     hm = hm.assign_coords(return_period=rp)
     # TODO write summary, description and units etc to data set
     return hm
+
+
+def calculate_hgev(d, rp):
+    # Calculating gev quant (hgev)
+    print('calculating gev_quant (hgev) over return periods')
+    hg = apply_ufunc(
+        wrapper_gev_quant,
+        d.sel(parameter='csi'),
+        d.sel(parameter='psi'),
+        d.sel(parameter='mu'),
+        rp,
+        input_core_dims=[[], [], [], ['return_period']],
+        vectorize=True,
+        dask="parallelized",
+        output_dtypes=[float],
+        # output_dtypes=[np.float64]  # Ensure this is a list of dtypes, not an array
+        output_core_dims=[["return_period"]]
+    )
+    hg = hg.assign_coords(return_period=rp)
+    # TODO write summary, description and units etc to data set
+    return hg
 
 
 if __name__ == '__main__':
