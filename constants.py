@@ -1,3 +1,6 @@
+"""
+Constants
+"""
 import numpy as np
 
 # script variables
