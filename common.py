@@ -29,3 +29,8 @@ def assign_year_coord(d):
     # converts timestamp to string YYYY-MM-DD
     d['time'] = d['time'].dt.strftime('%Y-%m-%d')
     return d
+
+
+def filter_by_threshold(d, th=0):
+    d = d.where(d.pr > th, drop=True)
+    return d
