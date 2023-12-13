@@ -34,3 +34,8 @@ def assign_year_coord(d):
 def filter_by_threshold(d, th=0):
     d = d.where(d.pr > th, drop=True)
     return d
+
+
+def crop_data_by_degree(d, deg=5):
+    cropped = d.isel(jx=slice(deg, -1 * deg), iy=slice(deg, -1 * deg))
+    return cropped

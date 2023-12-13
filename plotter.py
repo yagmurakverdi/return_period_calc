@@ -21,7 +21,7 @@ def plot_data(d, label, title, fname, map_color='YlGnBu'):
     ax.set_extent(extent, crs=ccrs.PlateCarree())
 
     # Add Precipitation Data as scatter on the map
-    scatter = ax.scatter(d['xlon'], d['xlat'], c=d, cmap=map_color, vmin=0, vmax=900, transform=ccrs.PlateCarree())
+    scatter = ax.scatter(d['xlon'], d['xlat'], c=d, cmap=map_color, vmin=0, vmax=500, transform=ccrs.PlateCarree())
 
     # Add a color bar and a label
     cbar = plt.colorbar(scatter, orientation='horizontal', pad=0.05, aspect=50)
