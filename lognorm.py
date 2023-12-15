@@ -19,7 +19,7 @@ def wrapper_lognorm_fit(sample):
 
 
 def calculate_lognorm_fit(d):
-    print('calculating lognorm fit')
+    print('> calculating lognorm fit')
     lf = apply_ufunc(
         wrapper_lognorm_fit,
         d['pr'],
@@ -30,7 +30,7 @@ def calculate_lognorm_fit(d):
         output_core_dims=[["parameter"]]
     )
     lf = lf.assign_coords(parameter=["shape", "scale"])
-    print('done...')
+    print('>> done...')
     return lf
 
 
@@ -42,7 +42,7 @@ def wrapper_lognorm_icdf(shape_in, scale_in, return_periods_in):
 
 
 def calculate_lognorm_icdf(d, rp):
-    print('calculating lognorm icdf')
+    print('> calculating lognorm icdf')
     rp_pr = apply_ufunc(
         wrapper_lognorm_icdf,
         d.sel(parameter="shape"),
@@ -55,5 +55,5 @@ def calculate_lognorm_icdf(d, rp):
         kwargs={"return_periods_in": rp}
     )
     rp_pr = rp_pr.assign_coords(return_periods=rp)
-    print('done...')
+    print('>> done...')
     return rp_pr

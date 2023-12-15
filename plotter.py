@@ -3,8 +3,17 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 
+from constants import out_plot_path
 
-def plot_data(d, label, title, fname, map_color='YlGnBu'):
+
+def plot_data(d, label, title, fname, map_color='YlGnBu', scale='rp'):
+    file_path = f'{out_plot_path}{fname}.jpg'
+    vmin = 0
+    vmax = 500
+    if scale == 'change':
+        vmin = -0.5
+        vmax = 0.5
+
     # Define the projection
     proj = ccrs.Mercator()
 
@@ -21,7 +30,7 @@ def plot_data(d, label, title, fname, map_color='YlGnBu'):
     ax.set_extent(extent, crs=ccrs.PlateCarree())
 
     # Add Precipitation Data as scatter on the map
-    scatter = ax.scatter(d['xlon'], d['xlat'], c=d, cmap=map_color, vmin=0, vmax=500, transform=ccrs.PlateCarree())
+    scatter = ax.scatter(d['xlon'], d['xlat'], c=d, cmap=map_color, vmin=vmin, vmax=vmax, transform=ccrs.PlateCarree())
 
     # Add a color bar and a label
     cbar = plt.colorbar(scatter, orientation='horizontal', pad=0.05, aspect=50)
@@ -34,7 +43,8 @@ def plot_data(d, label, title, fname, map_color='YlGnBu'):
     # Add a title
     plt.title(title)
 
-    plt.savefig(fname, bbox_inches='tight')
+    plt.savefig(file_path, bbox_inches='tight')
+    plt.close()
     # Show the Map
     # plt.show()
 

@@ -7,7 +7,7 @@ import xarray as xr
 
 from json import JSONEncoder
 
-from constants import data_files, data_path, out_path
+from constants import data_files, data_path, out_data_path
 
 debug_mode = True
 
@@ -32,11 +32,11 @@ def debug_me(key, val, force=False):
 
 
 def save_nc(fname, nc):
-    file_path = f'{out_path}{fname}.nc'
+    file_path = f'{out_data_path}{fname}.nc'
     if os.path.exists(file_path):
         os.remove(file_path)
     nc.to_netcdf(file_path)
-    print(f'{fname} written to file')
+    print(f'> {fname} written to file')
 
 
 def open_data_file(f):
@@ -45,13 +45,16 @@ def open_data_file(f):
         file_path = f"{data_path}{data_files[f]['name']}"
     else:
         print('choose a proper file', str(data_files))
-        return False
+        sys.exit(1)
+    if not os.path.exists(file_path):
+        print(f'File {file_path} does not exists')
+        sys.exit(1)
     nc_data = xr.open_dataset(file_path)
     return nc_data
 
 
 def open_calculated_file(fname):
-    file_path = f'{out_path}{fname}.nc'
+    file_path = f'{out_data_path}{fname}.nc'
     if os.path.exists(file_path):
         try:
             nc = xr.open_dataset(file_path)
