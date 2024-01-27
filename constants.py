@@ -20,9 +20,9 @@ data_files = {
     '8.5-26-50': {'name': 'Turkey_MPI_85_dn_STS.2026-2050_pr.nc', 'data_type': 'model-85'},
     '8.5-51-75': {'name': 'Turkey_MPI_85_dn_STS.2051-2075_pr.nc', 'data_type': 'model-85'},
     '8.5-76-99': {'name': 'Turkey_MPI_85_dn_STS.2076-2099_pr.nc', 'data_type': 'model-85'},
-    # '4.5-26-50': {'name': 'Turkey_MPI_45_dn_STS.2026-2050_pr.nc', 'data_type': 'model-45'},
-    # '4.5-51-75': {'name': 'Turkey_MPI_45_dn_STS.2051-2075_pr.nc', 'data_type': 'model-45'},
-    # '4.5-76-99': {'name': 'Turkey_MPI_45_dn_STS.2076-2099_pr.nc', 'data_type': 'model-45'},
+    '4.5-26-50': {'name': 'Turkey_MPI_45_dn_STS.2026-2050_pr.nc', 'data_type': 'model-45'},
+    '4.5-51-75': {'name': 'Turkey_MPI_45_dn_STS.2051-2075_pr.nc', 'data_type': 'model-45'},
+    '4.5-76-99': {'name': 'Turkey_MPI_45_dn_STS.2076-2099_pr.nc', 'data_type': 'model-45'},
 }
 
 # calculation variables

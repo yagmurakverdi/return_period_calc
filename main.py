@@ -114,11 +114,11 @@ if __name__ == '__main__':
                 else:
                     hist_period_data = hist_icdf_data[:, :, rp]
                     cur_period_data = cur_icdf_data[:, :, rp]
-                change_period_data = (cur_period_data - hist_period_data) / hist_period_data
+                change_period_data = ((cur_period_data - hist_period_data) / hist_period_data)*100
                 data_files[data_file][f'{years}-rp-ch'] = change_period_data
                 save_nc(f'{data_file}-{years}_yr-rp_change', change_period_data)
                 print(f'> plotting change for {data_file} @ {years} rp')
-                label = f'{years} year changing precipitation accumulation [mm]'
+                label = f'Percentage Change in Precipitation over {years} Years'
                 title = f'{years} year Changing Return Period Map'
                 fname = f'{data_file}-change-{years}_yr-rp'
                 plot_data(change_period_data, label, title, fname, 'BrBG', 'change')

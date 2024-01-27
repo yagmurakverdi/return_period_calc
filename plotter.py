@@ -11,8 +11,8 @@ def plot_data(d, label, title, fname, map_color='YlGnBu', scale='rp'):
     vmin = 0
     vmax = 500
     if scale == 'change':
-        vmin = -0.5
-        vmax = 0.5
+        vmin = -50
+        vmax = 50
 
     # Define the projection
     proj = ccrs.Mercator()
